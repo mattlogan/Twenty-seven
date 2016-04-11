@@ -1,0 +1,166 @@
+package me.mattlogan.twentyseven.game;
+
+public final class WinChecker {
+
+  private WinChecker() {
+    // No instances
+  }
+
+  public static class Result {
+    private final int winner;
+    private final boolean[][][] spaces;
+
+    public Result(int winner, boolean[][][] spaces) {
+      this.winner = winner;
+      this.spaces = spaces;
+    }
+
+    public int winner() {
+      return winner;
+    }
+
+    public boolean[][][] spaces() {
+      return spaces;
+    }
+  }
+
+   /**
+   * Checks for a winner. Perhaps a more elegant solution exists...
+   *
+   * @return a Result object with winner and winning spaces if there is a winner, or null if not
+   */
+  public static Result checkForWinner(char[][][] grid) {
+    // iterates through each x-y plane along the z-axis
+    for (int i = 0; i < 3; i++) {
+
+      // checks for vertical wins in the current x-y plane
+      for (int j = 0; j < 3; j++) {
+        int top = grid[j][0][i];
+        int mid = grid[j][1][i];
+        int bottom = grid[j][2][i];
+
+        if (top != 'E' && top == mid && top == bottom) {
+          return new Result(top, winningSpaces(j, 0, i, j, 1, i, j, 2, i));
+        }
+      }
+
+      // front plane, checks for horizontal wins in the current x-y plane
+      for (int j = 0; j < 3; j++) {
+        int left = grid[0][j][i];
+        int mid = grid[1][j][i];
+        int right = grid[2][j][i];
+
+        if (left != 'E' && left == mid && left == right) {
+          return new Result(left, winningSpaces(0, j, i, 1, j, i, 2, j, i));
+        }
+      }
+
+      // front plane, checks for diagonal wins in the current x-y plane
+      int topLeft = grid[0][0][i];
+      int topRight = grid[2][0][i];
+      int mid = grid[1][1][i];
+      int bottomLeft = grid[0][2][i];
+      int bottomRight = grid[2][2][i];
+
+      // top-left to bottom-right win in the current x-y plane
+      if (topLeft != 'E' && topLeft == mid && topLeft == bottomRight) {
+        return new Result(topLeft, winningSpaces(0, 0, i, 1, 1, i, 2, 2, i));
+      }
+
+      // top-right to bottom-left win in the current x-y plane
+      if (topRight != 'E' && topRight == mid && topRight == bottomLeft) {
+        return new Result(topRight, winningSpaces(2, 0, i, 1, 1, i, 2, 2, i));
+      }
+    }
+
+    // check for wins straight along z-axis
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        int front = grid[i][j][0];
+        int mid = grid[i][j][1];
+        int back = grid[i][j][2];
+
+        if (front != 'E' && front == mid && front == back) {
+          return new Result(front, winningSpaces(i, j, 0, i, j, 1, i, j, 2));
+        }
+      }
+    }
+
+    // iterate through y values, or x-z planes
+    for (int i = 0; i < 3; i++) {
+      int frontLeft = grid[0][i][0];
+      int frontRight = grid[2][i][0];
+      int mid = grid[1][i][1];
+      int backLeft = grid[0][i][2];
+      int backRight = grid[2][i][2];
+
+      // front-left to back-right diagonal in current x-z plane
+      if (frontLeft != 'E' && frontLeft == mid && frontLeft == backRight) {
+        return new Result(frontLeft, winningSpaces(0, i, 0, 1, i, 1, 2, i, 2));
+      }
+
+      // front-right to back-left diagonal in current x-z plane
+      if (frontRight != 'E' && frontRight == mid && frontRight == backLeft) {
+        return new Result(frontRight, winningSpaces(2, i, 0, 1, i, 1, 2, i, 2));
+      }
+    }
+
+    // iterate through x values, or y-z planes
+    for (int i = 0; i < 3; i++) {
+      int frontTop = grid[i][0][0];
+      int frontBottom = grid[i][2][0];
+      int mid = grid[i][1][1];
+      int backTop = grid[i][0][2];
+      int backBottom = grid[i][2][2];
+
+      // front-top to back-bottom diagonal in current y-z plane
+      if (frontTop != 'E' && frontTop == mid && frontTop == backBottom) {
+        return new Result(frontTop, winningSpaces(i, 0, 0, i, 1, 1, i, 2, 2));
+      }
+
+      // front-bottom to back-top diagonal in current y-z plane
+      if (frontBottom != 'E' && frontBottom == mid && frontBottom == backTop) {
+        return new Result(frontBottom, winningSpaces(i, 2, 0, i, 1, 1, i, 0, 2));
+      }
+    }
+
+    // check for 3-d diagonals!!!!
+    int topLeftFront = grid[0][0][0];
+    int topRightFront = grid[2][0][0];
+    int bottomLeftFront = grid[0][2][0];
+    int bottomRightFront = grid[2][2][0];
+    int mid = grid[1][1][1];
+    int topLeftBack = grid[0][0][2];
+    int topRightBack = grid[2][0][2];
+    int bottomLeftBack = grid[0][2][2];
+    int bottomRightBack = grid[2][2][2];
+
+    if (topLeftFront != 'E' && topLeftFront == mid && topLeftFront == bottomRightBack) {
+      return new Result(topLeftFront, winningSpaces(0, 0, 0, 1, 1, 1, 2, 2, 2));
+    }
+
+    if (topRightFront != 'E' && topRightFront == mid && topRightFront == bottomLeftBack) {
+      return new Result(topRightFront, winningSpaces(2, 0, 0, 1, 1, 1, 0, 2, 2));
+    }
+
+    if (bottomLeftFront != 'E' && bottomLeftFront == mid && bottomLeftFront == topRightBack) {
+      return new Result(bottomLeftFront, winningSpaces(0, 2, 0, 1, 1, 1, 2, 0, 2));
+    }
+
+    if (bottomRightFront != 'E' && bottomRightFront == mid && bottomRightFront == topLeftBack) {
+      return new Result(bottomRightFront, winningSpaces(2, 2, 0, 1, 1, 1, 0, 0, 2));
+    }
+
+    return null;
+  }
+
+  private static boolean[][][] winningSpaces(int x0, int y0, int z0,
+                                      int x1, int y1, int z1,
+                                      int x2, int y2, int z2) {
+    boolean[][][] array = new boolean[3][3][3];
+    array[x0][y0][z0] = true;
+    array[x1][y1][z1] = true;
+    array[x2][y2][z2] = true;
+    return array;
+  }
+}
