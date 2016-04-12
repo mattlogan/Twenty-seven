@@ -11,10 +11,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.messages.Strategy;
+import com.google.android.gms.nearby.messages.SubscribeOptions;
 import com.squareup.otto.Bus;
 
 import javax.inject.Inject;
 
+import dagger.ObjectGraph;
 import me.mattlogan.twentyseven.intro.IntroFragment;
 import me.mattlogan.twentyseven.messages.IncomingMessageRouter;
 import timber.log.Timber;
@@ -30,8 +33,15 @@ public final class MainActivity extends AppCompatActivity {
 
   private static final int PERMISSION_REQ_CODE = 123;
 
+  private ObjectGraph graph;
+
   @Override protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    if (Timber.treeCount() == 0) {
+      Timber.plant(new Timber.DebugTree());
+    }
+    graph = ObjectGraph.create(new AppModule(this));
+    inject(this);
     setContentView(R.layout.activity_main);
     if (savedInstanceState == null) {
       getSupportFragmentManager()
@@ -39,6 +49,10 @@ public final class MainActivity extends AppCompatActivity {
           .add(R.id.fragment_container, new IntroFragment())
           .commit();
     }
+  }
+
+  public void inject(Object o) {
+    graph.inject(o);
   }
 
   @Override public void onStart() {
@@ -49,15 +63,15 @@ public final class MainActivity extends AppCompatActivity {
 
   private void initializeNearbyApi() {
     client.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-          @Override public void onConnected(@Nullable Bundle bundle) {
-            Timber.d("onConnected");
-            checkPermission();
-          }
+      @Override public void onConnected(@Nullable Bundle bundle) {
+        Timber.d("onConnected");
+        checkPermission();
+      }
 
-          @Override public void onConnectionSuspended(int i) {
-            Timber.d("onConnectionSuspended");
-          }
-        });
+      @Override public void onConnectionSuspended(int i) {
+        Timber.d("onConnectionSuspended");
+      }
+    });
 
     client.connect();
   }
@@ -88,7 +102,12 @@ public final class MainActivity extends AppCompatActivity {
 
   private void onNearbyApiAvailable() {
     Timber.d("onNearbyApiAvailable");
-    Nearby.Messages.subscribe(client, messageRouter);
+    SubscribeOptions options = new SubscribeOptions.Builder()
+        .setStrategy(new Strategy.Builder()
+            .setTtlSeconds(Strategy.TTL_SECONDS_INFINITE)
+            .build())
+        .build();
+    Nearby.Messages.subscribe(client, messageRouter, options);
     bus.post(new OnNearbyApiAvailableEvent());
   }
 
@@ -97,6 +116,7 @@ public final class MainActivity extends AppCompatActivity {
     Timber.d("onStop");
     if (client.isConnected()) {
       Nearby.Messages.unsubscribe(client, messageRouter);
+      client.disconnect();
     }
   }
 }

@@ -11,7 +11,12 @@ public enum Plane {
     this.zValue = zValue;
   }
 
-  public int getzValue() {
+  public int zValue() {
     return zValue;
+  }
+
+  public String toDisplayString() {
+    String uppercase = this.toString();
+    return uppercase.charAt(0) + uppercase.substring(1).toLowerCase();
   }
 }

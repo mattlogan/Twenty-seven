@@ -3,14 +3,14 @@ package me.mattlogan.twentyseven.game;
 import java.util.Arrays;
 
 /**
- * Immutable representation of game state. 'E' is an empty space, 'X' and 'O' should be obvious!
+ * Representation of game state. 'E' is an empty space, 'X' and 'O' should be obvious!
  */
 public class Game {
   
   private static final String TURN_PREFIX = "_TURN_";
 
   private final char[][][] grid;
-  private final char turn;
+  private char turn;
 
   private Game(char[][][] grid, char turn) {
     this.grid = grid;
@@ -52,8 +52,16 @@ public class Game {
     return grid;
   }
 
-  public int turn() {
+  public char turn() {
     return turn;
+  }
+
+  public void incrementTurn() {
+    if (turn == 'X') {
+      turn = 'O';
+    } else if (turn == 'O') {
+      turn = 'X';
+    }
   }
 
   @Override

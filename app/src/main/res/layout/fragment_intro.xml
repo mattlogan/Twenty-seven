@@ -21,9 +21,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
+            android:background="@color/dark_red"
             android:enabled="false"
             android:padding="16dp"
-            android:text="@string/front"/>
+            android:text="@string/front"
+            android:textColor="@color/white"
+            android:textSize="32sp"/>
 
         <Space
             android:layout_width="0dp"
@@ -35,9 +38,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
+            android:background="@color/dark_red"
             android:enabled="false"
             android:padding="16dp"
-            android:text="@string/middle"/>
+            android:text="@string/middle"
+            android:textColor="@color/white"
+            android:textSize="32sp"/>
 
         <Space
             android:layout_width="0dp"
@@ -49,9 +55,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
+            android:background="@color/dark_red"
             android:enabled="false"
             android:padding="16dp"
-            android:text="@string/back"/>
+            android:text="@string/back"
+            android:textColor="@color/white"
+            android:textSize="32sp"/>
 
         <Space
             android:layout_width="0dp"
@@ -66,6 +75,7 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:text="@string/waiting"
+        android:textSize="48sp"
         android:visibility="gone"/>
 
 </RelativeLayout>

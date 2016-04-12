@@ -19,10 +19,10 @@ public class WinCheckerTest {
     grid[0][1][0] = 'X';
     grid[0][2][0] = 'X';
 
-    WinChecker.Result result = WinChecker.checkForWinner(grid);
+    WinChecker.Win win = WinChecker.checkForWinner(grid);
 
-    assertNotNull(result);
-    assertTrue(result.winner() == 'X');
+    assertNotNull(win);
+    assertTrue(win.winner() == 'X');
   }
 
   @Test
@@ -32,10 +32,10 @@ public class WinCheckerTest {
     grid[1][1][1] = 'O';
     grid[2][2][2] = 'O';
 
-    WinChecker.Result result = WinChecker.checkForWinner(grid);
+    WinChecker.Win win = WinChecker.checkForWinner(grid);
 
-    assertNotNull(result);
-    assertTrue(result.winner() == 'O');
+    assertNotNull(win);
+    assertTrue(win.winner() == 'O');
   }
 
   @Test

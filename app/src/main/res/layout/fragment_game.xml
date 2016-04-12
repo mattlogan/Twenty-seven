@@ -1,16 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PercentRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                       xmlns:app="http://schemas.android.com/apk/res-auto"
-                       android:layout_width="match_parent"
-                       android:layout_height="match_parent">
+<android.support.percent.PercentRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <GridLayout
-        app:layout_percentWidth="75%"
-        app:layout_aspectRatio="100%">
+    <TextView
+        android:id="@+id/plane_label"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/dark_red"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="36sp"
+        tools:text="Front"/>
 
-        <TextView
-            android:layout_gravity="fill_horizontal"/>
+    <TextView
+        android:id="@+id/game_status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/plane_label"
+        android:layout_margin="24dp"
+        android:text="@string/xs_turn"
+        android:textColor="@color/dark_gray"
+        android:textSize="24sp"
+        tools:text="X's turn"/>
 
-    </GridLayout>
+    <me.mattlogan.twentyseven.game.BoardView
+        android:id="@+id/board_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_centerInParent="true"
+        app:layout_aspectRatio="100%"
+        app:layout_heightPercent="60%"/>
 
-</PercentRelativeLayout>
+    <Button
+        android:id="@+id/button_new_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="24dp"
+        android:background="@color/dark_red"
+        android:padding="16dp"
+        android:text="@string/new_game"
+        android:textColor="@color/white"
+        android:textSize="32sp"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
+</android.support.percent.PercentRelativeLayout>

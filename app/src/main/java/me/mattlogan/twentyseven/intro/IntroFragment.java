@@ -16,11 +16,11 @@ import javax.inject.Inject;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import me.mattlogan.twentyseven.MainActivity;
 import me.mattlogan.twentyseven.OnNearbyApiAvailableEvent;
 import me.mattlogan.twentyseven.Plane;
 import me.mattlogan.twentyseven.PlaneTracker;
 import me.mattlogan.twentyseven.R;
-import me.mattlogan.twentyseven.TwentysevenApp;
 import me.mattlogan.twentyseven.game.GameFragment;
 import me.mattlogan.twentyseven.messages.IncomingMessageRouter;
 import me.mattlogan.twentyseven.messages.MessagePublisher;
@@ -42,7 +42,7 @@ public class IntroFragment extends Fragment
   private int numSelectedRemotePlanes;
 
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup root, Bundle state) {
-    TwentysevenApp.get(getActivity()).inject(this);
+    ((MainActivity) getActivity()).inject(this);
     View view = inflater.inflate(R.layout.fragment_intro, root, false);
     ButterKnife.bind(this, view);
     bus.register(this);

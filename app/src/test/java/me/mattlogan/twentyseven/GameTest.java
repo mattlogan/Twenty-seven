@@ -20,7 +20,7 @@ public class GameTest {
     grid[1][1][2] = 'O';
     grid[2][1][2] = 'O';
 
-    assertEquals("XXXEEEEEEEEEEEEEEEOEEEOOEEE_TURN_X", game.convertToMessage());
+    assertEquals("XXXEEEEEEEEEEEEEEEOEEEOOEEE_TURN_X", game.toString());
   }
 
   @Test

@@ -1,5 +1,7 @@
 package me.mattlogan.twentyseven.messages;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -18,25 +20,28 @@ public final class MessagePublisher {
   static final String GAME_UPDATED = "GAME_UPDATED_";
 
   private final GoogleApiClient client;
+  private final Handler handler;
 
   public MessagePublisher(GoogleApiClient client) {
     this.client = client;
+    this.handler = new Handler(Looper.getMainLooper());
   }
 
   public void publishPlaneSelectedMessage(Plane plane) {
-    String str = PLANE_SELECTED + plane;
-    Timber.d("Publishing plane selected message: %s", str);
-    publish(str);
+    String message = PLANE_SELECTED + plane;
+    Timber.d("Publishing plane selected message: %s", message);
+    publish(message);
   }
 
   public void publishGameUpdateMessage(Game game) {
-    String str = GAME_UPDATED + game;
-    Timber.d("Publishing game updated message: %s", str);
-    publish(str);
+    String message = GAME_UPDATED + game;
+    Timber.d("Publishing game updated message: %s", message);
+    publish(message);
   }
 
-  private void publish(String message) {
-    Nearby.Messages.publish(client, new Message(message.getBytes()))
+  private void publish(String messageString) {
+    final Message message = new Message(messageString.getBytes());
+    Nearby.Messages.publish(client, message)
         .setResultCallback(new ResultCallback<Status>() {
           @Override public void onResult(@NonNull Status status) {
             if (status.isSuccess()) {
@@ -46,5 +51,13 @@ public final class MessagePublisher {
             }
           }
         });
+
+    // Unpublish message after five seconds
+    handler.postDelayed(new Runnable() {
+      @Override public void run() {
+        Nearby.Messages.unpublish(client, message);
+        Timber.d("Unpublished message");
+      }
+    }, 5000);
   }
 }
