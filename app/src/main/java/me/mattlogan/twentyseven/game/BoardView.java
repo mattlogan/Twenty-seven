@@ -76,8 +76,7 @@ public class BoardView extends GridLayout {
   @Override public void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
 
-    float third = w / 3f;
-    float sixth = w / 6f;
+    float third = w / 3f; // third of grid, or width of one grid space
 
     float thickness = 10f * getResources().getDisplayMetrics().density;
     oPaint.setStrokeWidth(thickness);
@@ -89,17 +88,22 @@ public class BoardView extends GridLayout {
     gridLeftLine = new RectF(third - thickness / 2, 0, third + thickness / 2, h);
     gridRightLine = new RectF(2 * third - thickness / 2, 0, 2 * third + thickness / 2, h);
 
+    calculateXsAndOs();
+  }
+
+  private void calculateXsAndOs() {
+    float width = getWidth() / 3f; // width of one grid space
     // Xs and the oh oh ohs
     for (int i = 0; i < 9; i++) {
       // Xs
       int x = i % 3; // 0, 1, 2, 0, 1, 2, 0, 1, 2
       int y = i / 3; // 0, 0, 0, 1, 1, 1, 2, 2, 2
 
-      float offset = third / 4;
-      float leftX = x * third + offset;
-      float topY = y * third + offset;
-      float rightX = x * third + third - offset;
-      float bottomY = y * third + third - offset;
+      float offset = width / 4;
+      float leftX = x * width + offset;
+      float topY = y * width + offset;
+      float rightX = x * width + width - offset;
+      float bottomY = y * width + width - offset;
 
       Float[] firstLine = xs[i][0];
       firstLine[0] = leftX;
@@ -114,9 +118,9 @@ public class BoardView extends GridLayout {
       secondLine[3] = topY;
 
       // Os
-      float rad = third / 4;
-      float cx = x * third + sixth;
-      float cy = y * third + sixth;
+      float rad = width / 4;
+      float cx = x * width + width / 2;
+      float cy = y * width + width / 2;
 
       os[i] = new RectF(cx - rad, cy - rad, cx + rad, cy + rad);
     }
@@ -241,6 +245,7 @@ public class BoardView extends GridLayout {
     winAnimator.removeAllUpdateListeners();
     winningOs.clear();
     winningXs.clear();
+    calculateXsAndOs();
     this.setEnabled(true);
   }
 
