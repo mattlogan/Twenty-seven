@@ -71,7 +71,7 @@ public final class WinChecker {
 
       // top-right to bottom-left win in the current x-y plane
       if (topRight != 'E' && topRight == mid && topRight == bottomLeft) {
-        return new Win(topRight, winningSpaces(2, 0, i, 1, 1, i, 2, 2, i));
+        return new Win(topRight, winningSpaces(2, 0, i, 1, 1, i, 0, 2, i));
       }
     }
 
@@ -103,7 +103,7 @@ public final class WinChecker {
 
       // front-right to back-left diagonal in current x-z plane
       if (frontRight != 'E' && frontRight == mid && frontRight == backLeft) {
-        return new Win(frontRight, winningSpaces(2, i, 0, 1, i, 1, 2, i, 2));
+        return new Win(frontRight, winningSpaces(2, i, 0, 1, i, 1, 0, i, 2));
       }
     }
 
