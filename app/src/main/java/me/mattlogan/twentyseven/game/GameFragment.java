@@ -69,7 +69,7 @@ public class GameFragment extends Fragment
     WinChecker.Win win = WinChecker.checkForWinner(game.grid());
     if (win != null) {
       statusText.setText(getString(R.string.x_wins, win.winner()));
-      boardView.showWin(win.spaces(), planeTracker.currentPlane().zValue());
+      boardView.showWin(win.winner(), win.spaces(), planeTracker.currentPlane().zValue());
       newGameButton.setVisibility(View.VISIBLE);
     } else {
       boardView.updateTurn(game.turn());

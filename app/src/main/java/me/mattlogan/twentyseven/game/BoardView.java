@@ -1,15 +1,17 @@
 package me.mattlogan.twentyseven.game;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
-import android.graphics.PointF;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.support.v7.widget.GridLayout;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.animation.LinearInterpolator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import me.mattlogan.twentyseven.R;
@@ -28,7 +30,6 @@ public class BoardView extends GridLayout {
   private Paint gridPaint;
   private Paint oPaint;
   private Paint xPaint;
-  private Paint rainbowPaint; // Yes.
 
   private RectF gridLeftLine;
   private RectF gridRightLine;
@@ -37,15 +38,17 @@ public class BoardView extends GridLayout {
 
   private float roundingRadius;
 
-  private PointF oCenters[] = new PointF[9];
-  private float oRadius;
+  private RectF[] os = new RectF[9];
 
-  private float[][][] xs = new float[9][2][4]; // 9 Xs of 2 lines with 2 points (x and y) each
+  private Float[][][] xs = new Float[9][2][4]; // 9 Xs of 2 lines with 2 points (x and y) each
 
   private char turn;
   private char[] planeState = new char[9];
 
-  private boolean[] winSpaces = new boolean[9];
+  private final List<RectF> winningOs = new ArrayList<>();
+  private final List<Float[][]> winningXs = new ArrayList<>();
+
+  private ValueAnimator winAnimator;
 
   public BoardView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -60,22 +63,14 @@ public class BoardView extends GridLayout {
     xPaint.setStyle(Paint.Style.STROKE);
     roundingRadius = 5 * context.getResources().getDisplayMetrics().density;
     setWillNotDraw(false);
+    initAnimator();
   }
 
-  private void initWinPaint(float width) {
-    rainbowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    rainbowPaint.setStyle(Paint.Style.STROKE);
-
-    int[] rainbow = new int[]{
-        getResources().getColor(R.color.rainbow_red),
-        getResources().getColor(R.color.rainbow_yellow),
-        getResources().getColor(R.color.rainbow_green),
-        getResources().getColor(R.color.rainbow_blue),
-        getResources().getColor(R.color.rainbow_purple)
-    };
-    Shader shader = new LinearGradient(width / 2, 0, 1.5f * width, 0, rainbow, null,
-        Shader.TileMode.MIRROR);
-    rainbowPaint.setShader(shader);
+  private void initAnimator() {
+    winAnimator = ValueAnimator.ofFloat(0, (float) (2 * Math.PI));
+    winAnimator.setInterpolator(new LinearInterpolator());
+    winAnimator.setRepeatCount(ValueAnimator.INFINITE);
+    winAnimator.setDuration(500);
   }
 
   @Override public void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -88,9 +83,6 @@ public class BoardView extends GridLayout {
     oPaint.setStrokeWidth(thickness);
     xPaint.setStrokeWidth(thickness);
 
-    initWinPaint(sixth);
-    rainbowPaint.setStrokeWidth(thickness);
-
     // The grid
     gridTopLine = new RectF(0, third - thickness / 2, w, third + thickness / 2);
     gridBottomLine = new RectF(0, 2 * third - thickness / 2, w, 2 * third + thickness / 2);
@@ -99,6 +91,7 @@ public class BoardView extends GridLayout {
 
     // Xs and the oh oh ohs
     for (int i = 0; i < 9; i++) {
+      // Xs
       int x = i % 3; // 0, 1, 2, 0, 1, 2, 0, 1, 2
       int y = i / 3; // 0, 0, 0, 1, 1, 1, 2, 2, 2
 
@@ -108,27 +101,30 @@ public class BoardView extends GridLayout {
       float rightX = x * third + third - offset;
       float bottomY = y * third + third - offset;
 
-      float[] firstLine = xs[i][0];
+      Float[] firstLine = xs[i][0];
       firstLine[0] = leftX;
       firstLine[1] = topY;
       firstLine[2] = rightX;
       firstLine[3] = bottomY;
 
-      float[] secondLine = xs[i][1];
+      Float[] secondLine = xs[i][1];
       secondLine[0] = leftX;
       secondLine[1] = bottomY;
       secondLine[2] = rightX;
       secondLine[3] = topY;
 
-      oCenters[i] = new PointF(x * third + sixth, y * third + sixth);
-    }
+      // Os
+      float rad = third / 4;
+      float cx = x * third + sixth;
+      float cy = y * third + sixth;
 
-    oRadius = third / 4;
+      os[i] = new RectF(cx - rad, cy - rad, cx + rad, cy + rad);
+    }
   }
 
   @Override public boolean onTouchEvent(MotionEvent e) {
-    if (e.getAction() != MotionEvent.ACTION_DOWN) {
-      // Only handle action_down touch events
+    if (e.getAction() != MotionEvent.ACTION_DOWN || !this.isEnabled()) {
+      // Only handle action_down touch events when this view is enabled
       return false;
     }
 
@@ -178,17 +174,74 @@ public class BoardView extends GridLayout {
     invalidate();
   }
 
-  public void showWin(boolean[][][] grid, int zIndex) {
+  public void showWin(char winner, boolean[][][] winningGrid, int zIndex) {
     for (int y = 0; y < 3; y++) {
       for (int x = 0; x < 3; x++) {
-        winSpaces[y * 3 + x] = grid[x][y][zIndex]; // True if space involved in win
+        if (winningGrid[x][y][zIndex]) { // Space has win
+          int index = y * 3 + x;
+          if (planeState[index] == 'X') {
+            winningXs.add(xs[index]);
+          } else if (planeState[index] == 'O') {
+            winningOs.add(os[index]);
+          }
+        }
       }
     }
-    invalidate();
+
+    if (winner == 'X') {
+      winAnimator.addUpdateListener(xUpdateListener);
+    } else if (winner == 'O') {
+      winAnimator.addUpdateListener(oUpdateListener);
+    }
+    winAnimator.start();
+
+    this.setEnabled(false);
   }
 
+  private ValueAnimator.AnimatorUpdateListener xUpdateListener =
+      new ValueAnimator.AnimatorUpdateListener() {
+        @Override public void onAnimationUpdate(ValueAnimator animation) {
+          float theta = (float) animation.getAnimatedValue();
+          for (Float[][] x : winningXs) {
+            Float[] line1 = x[0];
+            Float[] line2 = x[1];
+            float cx = (line1[0] + line2[2]) / 2f;
+            float rad = (line1[3] - line1[1]) / 2f;
+            float newRad = (float) (rad * Math.cos(theta));
+            float x0 = cx - newRad;
+            float x1 = cx + newRad;
+            line1[0] = Math.min(x0, x1);
+            line1[2] = Math.max(x0, x1);
+            line2[0] = Math.min(x0, x1);
+            line2[2] = Math.max(x0, x1);
+          }
+          invalidate();
+        }
+      };
+
+  private ValueAnimator.AnimatorUpdateListener oUpdateListener =
+      new ValueAnimator.AnimatorUpdateListener() {
+        @Override public void onAnimationUpdate(ValueAnimator animation) {
+          float theta = (float) animation.getAnimatedValue();
+          for (RectF oval : winningOs) {
+            float cx = oval.centerX();
+            float rad = (oval.bottom - oval.top) / 2f;
+            float newRad = (float) (rad * Math.cos(theta));
+            float x0 = cx - newRad;
+            float x1 = cx + newRad;
+            oval.left = Math.min(x0, x1);
+            oval.right = Math.max(x0, x1);
+          }
+          invalidate();
+        }
+      };
+
   public void clearWin() {
-    winSpaces = new boolean[9];
+    winAnimator.pause();
+    winAnimator.removeAllUpdateListeners();
+    winningOs.clear();
+    winningXs.clear();
+    this.setEnabled(true);
   }
 
   public void updateTurn(char turn) {
@@ -205,16 +258,13 @@ public class BoardView extends GridLayout {
     for (int i = 0; i < planeState.length; i++) {
       char mark = planeState[i];
       if (mark == 'X') {
-        Paint paint = winSpaces[i] ? rainbowPaint : xPaint;
-        float[][] lines = xs[i];
-        float[] firstLine = lines[0];
-        float[] secondLine = lines[1];
-        canvas.drawLine(firstLine[0], firstLine[1], firstLine[2], firstLine[3], paint);
-        canvas.drawLine(secondLine[0], secondLine[1], secondLine[2], secondLine[3], paint);
+        Float[][] lines = xs[i];
+        Float[] firstLine = lines[0];
+        Float[] secondLine = lines[1];
+        canvas.drawLine(firstLine[0], firstLine[1], firstLine[2], firstLine[3], xPaint);
+        canvas.drawLine(secondLine[0], secondLine[1], secondLine[2], secondLine[3], xPaint);
       } else if (mark == 'O') {
-        Paint paint = winSpaces[i] ? rainbowPaint : oPaint;
-        PointF center = oCenters[i];
-        canvas.drawCircle(center.x, center.y, oRadius, paint);
+        canvas.drawOval(os[i], oPaint);
       }
     }
   }
